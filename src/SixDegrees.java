@@ -140,10 +140,60 @@ public class SixDegrees {
   // TASK 1: print out the actor(s) with the maximum degree
   // signature: public void maxDegree()
   // Instructions are in the problem set.
-
+  public void maxDegree() {
+    int max = 0; // initialized max
+    String maxActors = ""; // initializing String for actors with max degree
+    for (String actor : people.keySet()) {
+      ArrayList<PersonMovie> alist = people.get(actor);
+      int degree = alist.size();
+      if (degree > max) {
+        max = degree;
+      } // this loops through each actor in the HashMap and finds the max degree
+    }
+    for (String actor : people.keySet()) {
+      ArrayList<PersonMovie> alist = people.get(actor);
+      int degree = alist.size();
+      if (degree == max) {
+        maxActors = maxActors + " " + actor;
+      } // this repeats the loop, adding each actor with the max degree to the String
+    }
+    System.out.println("The actor(s) with the maximum degree are: " + maxActors);
+  }
   // TASK 1: print out the actor(s) with the minimum degree
   // signature: public void minDegree()
   // Instructions are in the problem set.
+  public void minDegree() {
+    int min = 100; // I initialized min with an arbitrary large number
+    String minActors = ""; // initializing String for actors with min degree
+    for (String actor : people.keySet()) {
+      ArrayList<PersonMovie> alist = people.get(actor);
+      int degree = alist.size();
+      if (degree < min) {
+        min = degree;
+      } // this loops through each actor in the HashMap and finds the min degree
+    }
+    for (String actor : people.keySet()) {
+      ArrayList<PersonMovie> alist = people.get(actor);
+      int degree = alist.size();
+      if (degree == min) {
+        minActors = minActors + " " + actor;
+      } // this repeats the loop, adding each actor with the min degree to the String
+    }
+    System.out.println("The actor(s) with the minimum degree are: " + minActors);
+  }
+
+  public void smallDegree() {
+    int min = 3;
+    String minActors = "";
+    for (String actor : people.keySet()) {
+      ArrayList<PersonMovie> alist = people.get(actor);
+      int degree = alist.size();
+      if (degree <= min) {
+        minActors = minActors + actor + ", ";
+      } // this loops through each actor in the HashMap and finds the min degree
+    }
+    System.out.println("The actor(s) with the degree<=3 are: " + minActors);
+  }
 
   // TASK 2: print out the 5 most popular actors based on number of visits in a random walk
   // signature: public void mostPopular()
@@ -151,7 +201,47 @@ public class SixDegrees {
   // Note: this code will pick a random actor from the people HashMap and save it to key.
   //       ArrayList<String> allActors = new ArrayList<String>(people.keySet());
   //       String key = allActors.get(new Random().nextInt(allActors.size()));
-
+  public void mostPopular() {
+    HashMap<String, Integer> tracker = new HashMap<String, Integer>();
+    // initializes HashMap for keeping track
+    for (int i = 0; i < 10000; i++) { // loops through 10,000 times
+      ArrayList<String> allActors = new ArrayList<String>(people.keySet());
+      String key = allActors.get(new Random().nextInt(allActors.size()));
+      // walks through starting with random actor
+      ArrayList<String> visited = randomWalk(key, 100);
+      // takes 100 steps, creating ArrayList of visited actors
+      for (String actor : visited) {
+        if (!tracker.containsKey(actor)) {
+          tracker.put(actor, 1);
+        }
+        else {
+          int count = tracker.get(actor);
+          count++;
+          tracker.put(actor, count);
+        } // keeps count of how many times each actor was visited
+      }
+    }
+    String topFive = "";
+    for (int i = 0; i < 5; i++) { // loops through 5 times to find top five
+      int max = 0; // initializes max number of appearances
+      String topActor = "";
+      for (String actor : tracker.keySet()) {
+        int count = tracker.get(actor);
+        if (count > max) {
+          max = count;
+        } // finds the max number of appearances
+      }
+      for (String actor : tracker.keySet()) {
+        int count = tracker.get(actor);
+        if (count == max) {
+          topActor = actor;
+          topFive = topFive + topActor + ", ";
+        } // finds the actor with the max appearances and adds him/her to String
+      }
+      tracker.remove(topActor); // this removes the top actor so I can find the next one
+    }
+    System.out.println("The five most popular actors are: " + topFive);
+  }
   // TASK 3: Find the shortest path between two actors using breadth-first search.
   // You need to print out the full path from actor a to actor b.
   // You also need to keep track of the length of the path.
@@ -169,33 +259,49 @@ public class SixDegrees {
 
     // YOUR CODE GOES HERE!
     // Start by adding the starting actor, a, to the queue.
-
+    queue.add(a);
+    camefrom.put(a, null);
     // While the queue is not empty
-
+    while (!queue.isEmpty()) {
+      String current = queue.poll();
       // poll() off the actor at the front of the queue.
-
+      ArrayList<PersonMovie> alist = people.get(current);
       // Get the adjacency list for that actor.
-
-      // For each PersonMovie in the adjacency list...
-
-        // If the actor in the PersonMovie is the actor, b, you are looking for.
-
-          // If it is, you are ready to print out the path that took you here.
+      for (PersonMovie pmovie : alist) { // For each PersonMovie in the adjacency list...
+        if (pmovie.person.equals(b)) { // If the actor in the PersonMovie is the actor, b, you are looking for.
+          int length = 0;
+          while (pmovie.person != a) {
+            System.out.println("We got to "  + pmovie.person + " from " + current + ".");
+            pmovie.person = current;
+            PersonMovie newpmovie = camefrom.get(current);
+            length++;
+            try {
+              current = newpmovie.person;
+            }
+            catch(Exception e) {
+              System.out.println("The length of path is " + length);
+              return;
+            }
+          } // If it is, you are ready to print out the path that took you here.
           // You must also print out its length.
           // Use the camefrom variable to help you do this.
           // Don't forget to return!!!
-
-
-
-        // Otherwise...
-
-          // If that actor has already been visited or is in the queue...
-
-            // Add that actor to the queue.
-
+          return;
+        }
+        else { // Otherwise...
+          if (!queue.contains(pmovie.person) && !camefrom.containsKey(pmovie.person)) {
+            // If that actor has already been visited or is in the queue...
+            queue.add(pmovie.person); // Add that actor to the queue.
+            PersonMovie newpmovie = new PersonMovie(current, pmovie.movie);
+            camefrom.put(pmovie.person, newpmovie);
             // And add that actor to camefrom with the current actor
             // and the movie that they were in together as the value.
-
+          }
+        }
+      }
+    }
+    System.out.println("No path found.");
+    return;
     // If you end up with an empty queue and no match, there was no path.
   }
 
@@ -211,17 +317,19 @@ public class SixDegrees {
     // -------------------------------------------
     // UNCOMMENT THESE TO TEST YOUR IMPLEMENTATION
     // -------------------------------------------
-    // sd.maxDegree();
-    // sd.minDegree();
-    // sd.mostPopular()
-    // sd.findShortestPath("Pablo Schreiber", "Sarah Clarke");
-
+    sd.maxDegree();
+    sd.minDegree();
+    sd.mostPopular();
+    sd.findShortestPath("Pablo Schreiber", "Sarah Clarke");
 
     // ---------------------------
     // CODE FOR TASK 4 GOES HERE!
     // ---------------------------
-
-
+    //sd.smallDegree();
+    sd.findShortestPath("Storm Acheche Sahlstrom", "Elizabeth Reaser");
+    // Using the smallDegree method, I came up with a list of actors
+    // with degree <= 3. By randomly plugging in actors, I found a max
+    // path length of 7, as shown.
   }
 
 }
